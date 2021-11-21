@@ -1,5 +1,5 @@
 import cv2
-import numpy as np
+import pytesseract
 
 # img = cv2.imread('opencv\\id_card0.jpg')
 # img = cv2.imread('opencv\\id_card1.jpg')
@@ -26,16 +26,14 @@ kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
 # 灰度化
 gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 # 二值化
-_, binary_img = cv2.threshold(gray_img, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+_, binary_img = cv2.threshold(gray_img, 150, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+# binary_img = cv2.adaptiveThreshold(gray_img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 155, 1)
 
 # 腐蚀
 erode_img = cv2.erode(binary_img, kernel, iterations=6)
 
 # 闭操作
 close_img = cv2.morphologyEx(erode_img, cv2.MORPH_CLOSE, kernel,iterations=2)
-
-# 开操作
-# open_img = cv2.morphologyEx(close_img, cv2.MORPH_CLOSE, kernel,iterations=2)
 
 # 轮廓查找
 contours, _ = cv2.findContours(close_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -60,11 +58,18 @@ for (_, rect) in enumerate(rects):
     if rect['y'] + rect['h'] > final_rect['y'] + final_rect['h']:
         final_rect = rect.copy()
 
-# dst = img[final_rect['x']:(final_rect['x']+final_rect['w']), final_rect['y']:(final_rect['y']+final_rect['h'])]
-dst = binary_img[final_rect['y']:(final_rect['y']+final_rect['h']), final_rect['x']:(final_rect['x']+final_rect['w'])]
-# dog[0:200, 0:200] = dst
+# 膨胀
+# dilate_img = cv2.dilate(binary_img, kernel, iterations=1)
 
-cv2.imshow('close_img', close_img)
+# 截取区域
+dst = binary_img[final_rect['y']:(final_rect['y']+final_rect['h']), final_rect['x']:(final_rect['x']+final_rect['w'])]
+
+# 获取文本
+# text = pytesseract.image_to_string(dst, lang="chi_sim+eng", config='--psm 7 --oem 3')
+# text = pytesseract.image_to_string(dst, lang="eng", config='--psm 8')
+text = pytesseract.image_to_string(dst, lang="eng", config='--psm 7 --oem 3')
+
+print(text.replace(' ', ''))
 cv2.imshow('img', img)
 cv2.imshow('dst', dst)
 cv2.waitKey(0)
