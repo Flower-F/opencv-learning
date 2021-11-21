@@ -4,8 +4,7 @@ import cv2
 
 cv2.namedWindow('img', cv2.WINDOW_NORMAL)
 
-img = cv2.imread(
-    'opencv\\123.png')
+img = cv2.imread('opencv\\123.png')
 
 while True:
     cv2.imshow('img', img)
